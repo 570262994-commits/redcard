@@ -5,17 +5,17 @@ import { domToPng } from 'modern-screenshot'
 const THEMES = {
   geek: {
     name: '极客代码',
-    bg: 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900',
+    bg: 'bg-gradient-to-b from-gray-900 via-gray-800 to-gray-900',
     accent: 'from-green-400 to-emerald-500',
     text: 'text-gray-100',
     subtext: 'text-gray-400',
-    cardBorder: 'border border-gray-700',
+    cardBorder: 'border-2 border-gray-500/60',
     isDark: true,
     colors: ['#1f2937', '#10b981', '#34d399']
   },
   blue: {
     name: '蔚蓝灵感',
-    bg: 'bg-gradient-to-br from-blue-100 via-cyan-50 to-sky-200',
+    bg: 'bg-gradient-to-b from-blue-100 via-cyan-50 to-sky-200',
     accent: 'from-blue-500 to-cyan-500',
     text: 'text-blue-900',
     subtext: 'text-blue-700',
@@ -24,7 +24,7 @@ const THEMES = {
   },
   pink: {
     name: '蜜桃日记',
-    bg: 'bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200',
+    bg: 'bg-gradient-to-b from-pink-100 via-rose-50 to-pink-200',
     accent: 'from-pink-500 to-rose-500',
     text: 'text-pink-900',
     subtext: 'text-pink-700',
@@ -33,17 +33,17 @@ const THEMES = {
   },
   glass: {
     name: '梦幻视窗',
-    bg: 'bg-gradient-to-br from-violet-200/30 via-fuchsia-100/20 to-pink-200/30',
+    bg: 'bg-gradient-to-b from-violet-100 via-fuchsia-50 to-pink-100',
     accent: 'from-violet-500 to-fuchsia-500',
     text: 'text-gray-800',
     subtext: 'text-gray-600',
-    cardBorder: 'border-2 border-white/60',
+    cardBorder: 'border-2 border-white/80',
     glass: true,
     colors: ['#e9d5ff', '#8b5cf6', '#d946ef']
   },
   paper: {
     name: '纸墨极简',
-    bg: 'bg-gradient-to-br from-amber-50 via-orange-50/30 to-yellow-50',
+    bg: 'bg-gradient-to-b from-amber-50 via-orange-50/30 to-yellow-50',
     accent: 'from-amber-700 to-orange-800',
     text: 'text-gray-800',
     subtext: 'text-gray-600',
