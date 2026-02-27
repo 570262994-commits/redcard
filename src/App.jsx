@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react'
-import { Download, Palette, Sparkles, User, Quote, CheckCircle } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile } from 'lucide-react'
 import html2canvas from 'html2canvas'
 
 const THEMES = {
@@ -41,44 +41,70 @@ const THEMES = {
   }
 }
 
-const DEFAULT_CONTENT = `# 产品设计知识
+const PRD_TEMPLATE = `# PRD自查清单
 
-## 5个核心原则
+## 需求完整性
 
-- 用户体验至上
-- 简洁即是美
-- 一致性设计
-- 反馈及时响应
-- 包容性思维
+- 用户场景是否覆盖完整
+- 边界情况是否考虑
+- 异常流程是否有处理方案
+- 数据埋点是否规划
 
-> 好的设计让产品更出色 ✨
+## 交互体验
 
-@产品设计师小明`
+- 操作路径是否简洁
+- 反馈提示是否及时
+- 错误提示是否友好
+- 加载状态是否明确
+
+> 好的产品，细节决定成败 ✨
+
+@产品经理小王`
+
+const EMOJIS = ['✨', '🔥', '💡', '🎯', '⭐', '❤️', '🚀', '💪', '📌', '🎉', '👍', '🌟', '💼', '📊', '🎨', '✅']
 
 function App() {
-  const [content, setContent] = useState(DEFAULT_CONTENT)
-  const [theme, setTheme] = useState('gray')
+  const [content, setContent] = useState(() => {
+    return localStorage.getItem('redcard-content') || ''
+  })
+  const [theme, setTheme] = useState(() => localStorage.getItem('redcard-theme') || 'gray')
   const [scale, setScale] = useState(2)
-  const cardRef = useRef(null)
   const [exporting, setExporting] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const cardRef = useRef(null)
+  const textareaRef = useRef(null)
+
+  useEffect(() => {
+    localStorage.setItem('redcard-content', content)
+  }, [content])
+
+  useEffect(() => {
+    localStorage.setItem('redcard-theme', theme)
+  }, [theme])
 
   const parseContent = (text) => {
     const lines = text.trim().split('\n')
     const result = {
       title: '',
+      subtitle: '',
       items: [],
       quote: '',
       author: ''
     }
 
-    let currentSection = null
-
     for (let line of lines) {
       line = line.trim()
       if (!line) continue
 
-      if (line.startsWith('# ')) {
-        result.title = line.replace('# ', '')
+      if (line.match(/^#+/)) {
+        const match = line.match(/^#+\s*(.+)/)
+        if (match) {
+          if (!result.title) {
+            result.title = match[1]
+          } else if (!result.subtitle) {
+            result.subtitle = match[1]
+          }
+        }
       } else if (line.startsWith('- ') || line.startsWith('* ')) {
         result.items.push(line.replace(/^[-*] /, ''))
       } else if (line.startsWith('> ')) {
@@ -87,25 +113,78 @@ function App() {
         result.author = line
       } else if (/^\d+\.\s/.test(line)) {
         result.items.push(line.replace(/^\d+\.\s/, ''))
-      } else if (line.startsWith('## ')) {
-        currentSection = 'subtitle'
-      } else if (line.startsWith('## ')) {
-        result.subtitle = line.replace('## ', '')
-      } else if (line.startsWith('##') && !result.subtitle) {
-        result.subtitle = line.replace('##', '').trim()
       }
     }
 
     return result
   }
 
+  const renderBoldText = (text) => {
+    if (!text) return null
+    const parts = text.split(/(\*\*[^*]+\*\*)/g)
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index} className="font-bold">{part.slice(2, -2)}</strong>
+      }
+      return <span key={index}>{part}</span>
+    })
+  }
+
   const parsed = parseContent(content)
+
+  const insertText = (before, after = '') => {
+    const textarea = textareaRef.current
+    if (!textarea) return
+    
+    const start = textarea.selectionStart
+    const end = textarea.selectionEnd
+    const selectedText = content.substring(start, end)
+    const newText = content.substring(0, start) + before + selectedText + after + content.substring(end)
+    
+    setContent(newText)
+    
+    setTimeout(() => {
+      textarea.focus()
+      textarea.setSelectionRange(start + before.length, end + before.length)
+    }, 0)
+  }
+
+  const handleToolbarAction = (action) => {
+    switch (action) {
+      case 'bold':
+        insertText('**', '**')
+        break
+      case 'list':
+        insertText('- ')
+        break
+      case 'quote':
+        insertText('> ')
+        break
+      case 'author':
+        insertText('@')
+        break
+      case 'emoji':
+        setShowEmojiPicker(!showEmojiPicker)
+        break
+    }
+  }
+
+  const insertEmoji = (emoji) => {
+    insertText(emoji)
+    setShowEmojiPicker(false)
+  }
+
+  const loadTemplate = () => {
+    setContent(PRD_TEMPLATE)
+  }
 
   const handleExport = async () => {
     if (!cardRef.current || exporting) return
     
     setExporting(true)
     try {
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
       const canvas = await html2canvas(cardRef.current, {
         scale: scale,
         useCORS: true,
@@ -175,13 +254,91 @@ function App() {
       </header>
 
       <main className="flex-1 flex">
-        <div className="w-2/5 border-r border-gray-200 bg-white p-4">
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="w-full h-full p-4 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-pink-500/20 font-mono text-sm leading-relaxed"
-            placeholder="输入你的内容，支持 Markdown 语法..."
-          />
+        <div className="w-2/5 border-r border-gray-200 bg-white flex flex-col">
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => handleToolbarAction('bold')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                >
+                  <Bold className="w-4 h-4 text-gray-600" />
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">加粗 **文字**</span>
+                </button>
+                <button
+                  onClick={() => handleToolbarAction('list')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                >
+                  <List className="w-4 h-4 text-gray-600" />
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">列表项 - </span>
+                </button>
+                <button
+                  onClick={() => handleToolbarAction('quote')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                >
+                  <Quote className="w-4 h-4 text-gray-600" />
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">金句 &gt; </span>
+                </button>
+                <button
+                  onClick={() => handleToolbarAction('author')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                >
+                  <AtSign className="w-4 h-4 text-gray-600" />
+                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">作者 @</span>
+                </button>
+                <div className="relative">
+                  <button
+                    onClick={() => handleToolbarAction('emoji')}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                  >
+                    <Smile className="w-4 h-4 text-gray-600" />
+                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">插入表情</span>
+                  </button>
+                  {showEmojiPicker && (
+                    <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap gap-1 z-50 w-40">
+                      {EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => insertEmoji(emoji)}
+                          className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded text-base"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={loadTemplate}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                加载示例
+              </button>
+            </div>
+            <div className="text-xs text-gray-400">
+              <span className="text-pink-500">#</span> 标题 · <span className="text-pink-500">##</span> 副标题 · <span className="text-pink-500">-</span> 列表 · <span className="text-pink-500">&gt;</span> 金句 · <span className="text-pink-500">@</span> 作者
+            </div>
+          </div>
+          
+          <div className="flex-1 p-4">
+            <div className="w-full h-full flex bg-gray-50 border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-pink-500/20">
+              <div className="w-10 bg-gray-100 border-r border-gray-200 flex-shrink-0 py-4 px-2 text-right select-none overflow-hidden">
+                {content.split('\n').map((_, i) => (
+                  <div key={i} className="text-xs text-gray-400 font-mono leading-6 h-6">{i + 1}</div>
+                ))}
+              </div>
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                className="flex-1 py-4 px-3 bg-transparent resize-none focus:outline-none font-mono text-sm leading-6 text-gray-800"
+                placeholder="输入你的内容，支持 Markdown 语法..."
+                spellCheck={false}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="w-3/5 bg-gray-100 flex items-center justify-center p-8 overflow-auto">
@@ -199,14 +356,14 @@ function App() {
                 </div>
                 {parsed.title && (
                   <span className={`font-bold text-lg ${currentTheme.text}`}>
-                    {parsed.title}
+                    {renderBoldText(parsed.title)}
                   </span>
                 )}
               </div>
 
               {parsed.subtitle && (
                 <h2 className={`text-sm font-semibold mb-3 ${currentTheme.subtext}`}>
-                  {parsed.subtitle}
+                  {renderBoldText(parsed.subtitle)}
                 </h2>
               )}
 
@@ -217,7 +374,7 @@ function App() {
                       <CheckCircle className="w-2.5 h-2.5 text-white" />
                     </div>
                     <span className={`text-sm leading-relaxed ${currentTheme.text}`}>
-                      {item}
+                      {renderBoldText(item)}
                     </span>
                   </div>
                 ))}
@@ -228,23 +385,21 @@ function App() {
                   <div className="flex items-start gap-2">
                     <Quote className={`w-4 h-4 mt-0.5 ${currentTheme.subtext}`} />
                     <span className={`text-sm italic ${currentTheme.subtext}`}>
-                      {parsed.quote}
+                      {renderBoldText(parsed.quote)}
                     </span>
                   </div>
                 </div>
               )}
 
-              <div className="mt-4 pt-3 border-t border-gray-200/50 flex items-center justify-between">
+              <div className="mt-auto pt-3 border-t border-gray-200/50">
                 <div className="flex items-center gap-1.5">
                   <User className={`w-3.5 h-3.5 ${currentTheme.subtext}`} />
                   <span className={`text-xs font-medium ${currentTheme.subtext}`}>
                     {parsed.author || '@你的小红书ID'}
                   </span>
                 </div>
-                <span className={`text-xs ${currentTheme.subtext}`}>
-                  ✨ 收藏 · 点赞
-                </span>
               </div>
+
             </div>
           </div>
         </div>
