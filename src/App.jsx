@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile } from 'lucide-react'
+import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile, AlertCircle } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 
 const THEMES = {
@@ -10,7 +10,8 @@ const THEMES = {
     text: 'text-gray-100',
     subtext: 'text-gray-400',
     cardBorder: 'border border-gray-700',
-    isDark: true
+    isDark: true,
+    colors: ['#1f2937', '#10b981', '#34d399']
   },
   blue: {
     name: '蔚蓝灵感',
@@ -18,7 +19,8 @@ const THEMES = {
     accent: 'from-blue-500 to-cyan-500',
     text: 'text-blue-900',
     subtext: 'text-blue-700',
-    cardBorder: 'border border-blue-200/50'
+    cardBorder: 'border border-blue-200/50',
+    colors: ['#dbeafe', '#3b82f6', '#06b6d4']
   },
   pink: {
     name: '蜜桃日记',
@@ -26,7 +28,8 @@ const THEMES = {
     accent: 'from-pink-500 to-rose-500',
     text: 'text-pink-900',
     subtext: 'text-pink-700',
-    cardBorder: 'border border-pink-200/50'
+    cardBorder: 'border border-pink-200/50',
+    colors: ['#fce7f3', '#ec4899', '#f43f5e']
   },
   glass: {
     name: '梦幻视窗',
@@ -35,7 +38,8 @@ const THEMES = {
     text: 'text-gray-800',
     subtext: 'text-gray-600',
     cardBorder: 'border-2 border-white/60',
-    glass: true
+    glass: true,
+    colors: ['#e9d5ff', '#8b5cf6', '#d946ef']
   },
   paper: {
     name: '纸墨极简',
@@ -44,7 +48,8 @@ const THEMES = {
     text: 'text-gray-800',
     subtext: 'text-gray-600',
     cardBorder: 'border border-amber-200/30',
-    paper: true
+    paper: true,
+    colors: ['#fffbeb', '#d97706', '#ea580c']
   }
 }
 
@@ -63,6 +68,19 @@ const PRD_TEMPLATE = `# PRD自查清单
 
 const EMOJIS = ['✨', '🔥', '💡', '🎯', '⭐', '❤️', '🚀', '💪', '📌', '🎉', '👍', '🌟', '💼', '📊', '🎨', '✅']
 
+const EMPTY_GUIDE = {
+  title: '欢迎使用 RedCard',
+  subtitle: '小红书干货卡片生成器',
+  items: [
+    '点击顶部「加载示例」快速开始',
+    '或输入你的内容',
+    '选择喜欢的主题',
+    '导出精美图片'
+  ],
+  quote: '开始创作你的第一张卡片吧 ✨',
+  author: '@你的小红书ID'
+}
+
 function App() {
   const [content, setContent] = useState(() => {
     return localStorage.getItem('redcard-content') || ''
@@ -71,6 +89,8 @@ function App() {
   const [scale, setScale] = useState(2)
   const [exporting, setExporting] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showLoadConfirm, setShowLoadConfirm] = useState(false)
+  const [hoveredTheme, setHoveredTheme] = useState(null)
   const cardRef = useRef(null)
   const textareaRef = useRef(null)
 
@@ -131,6 +151,7 @@ function App() {
   }
 
   const parsed = parseContent(content)
+  const isEmpty = !content.trim()
 
   const insertText = (before, after = '') => {
     const textarea = textareaRef.current
@@ -174,8 +195,17 @@ function App() {
     setShowEmojiPicker(false)
   }
 
-  const loadTemplate = () => {
+  const confirmLoadTemplate = () => {
+    if (content.trim()) {
+      setShowLoadConfirm(true)
+    } else {
+      setContent(PRD_TEMPLATE)
+    }
+  }
+
+  const handleLoadTemplate = () => {
     setContent(PRD_TEMPLATE)
+    setShowLoadConfirm(false)
   }
 
   const [showExportModal, setShowExportModal] = useState(false)
@@ -205,7 +235,13 @@ function App() {
     }
   }
 
+  const handleContextMenu = (e) => {
+    e.preventDefault()
+    setShowExportModal(true)
+  }
+
   const currentTheme = THEMES[theme]
+  const previewTheme = hoveredTheme ? THEMES[hoveredTheme] : currentTheme
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -224,13 +260,20 @@ function App() {
               <button
                 key={key}
                 onClick={() => setTheme(key)}
+                onMouseEnter={() => setHoveredTheme(key)}
+                onMouseLeave={() => setHoveredTheme(null)}
                 className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all relative ${
                   theme === key 
                     ? 'bg-white text-gray-800 shadow-sm ring-2 ring-pink-400/50 animate-pulse' 
                     : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
-                {value.name}
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 rounded-full" style={{ background: value.colors[0] }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: value.colors[1] }} />
+                  <div className="w-3 h-3 rounded-full" style={{ background: value.colors[2] }} />
+                </div>
+                <span className="ml-2">{value.name}</span>
               </button>
             ))}
           </div>
@@ -247,9 +290,10 @@ function App() {
       </header>
 
       {showExportModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-2xl p-6 shadow-xl">
-            <h3 className="text-lg font-bold text-gray-800 mb-4">选择导出清晰度</h3>
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowExportModal(false)}>
+          <div className="bg-white rounded-2xl p-6 shadow-xl" onClick={e => e.stopPropagation()}>
+            <h3 className="text-lg font-bold text-gray-800 mb-2">导出图片</h3>
+            <p className="text-sm text-gray-500 mb-4">也可以直接在卡片上右键导出</p>
             <div className="flex gap-3">
               <button
                 onClick={() => handleExport(2)}
@@ -270,6 +314,37 @@ function App() {
             >
               取消
             </button>
+          </div>
+        </div>
+      )}
+
+      {showLoadConfirm && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowLoadConfirm(false)}>
+          <div className="bg-white rounded-2xl p-6 shadow-xl max-w-sm" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center">
+                <AlertCircle className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold text-gray-800">加载示例</h3>
+                <p className="text-sm text-gray-500">当前内容将被覆盖</p>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">确定要加载示例内容吗？当前编辑的内容将会丢失。</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowLoadConfirm(false)}
+                className="flex-1 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-gray-800 font-medium transition-colors"
+              >
+                取消
+              </button>
+              <button
+                onClick={handleLoadTemplate}
+                className="flex-1 px-4 py-2 bg-pink-500 hover:bg-pink-600 text-white rounded-lg font-medium transition-colors"
+              >
+                确认加载
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -331,7 +406,7 @@ function App() {
                 </div>
               </div>
               <button
-                onClick={loadTemplate}
+                onClick={confirmLoadTemplate}
                 className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 <FileText className="w-4 h-4" />
@@ -365,16 +440,17 @@ function App() {
         <div className="w-3/5 bg-gray-100 flex items-center justify-center p-8 overflow-auto">
           <div 
             ref={cardRef}
-            className={`relative w-[360px] h-[480px] rounded-3xl shadow-2xl overflow-hidden ${currentTheme.bg} ${currentTheme.cardBorder} ${currentTheme.glass ? 'backdrop-blur-2xl' : ''}`}
+            onContextMenu={handleContextMenu}
+            className={`relative w-[360px] h-[480px] rounded-3xl shadow-2xl overflow-hidden cursor-pointer ${previewTheme.bg} ${previewTheme.cardBorder} ${previewTheme.glass ? 'backdrop-blur-2xl' : ''}`}
             style={{ aspectRatio: '3/4' }}
           >
-            {currentTheme.paper && (
+            {previewTheme.paper && (
               <div className="absolute inset-0 opacity-30" style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
               }} />
             )}
             
-            {currentTheme.glass && (
+            {previewTheme.glass && (
               <div className="absolute inset-0 backdrop-blur-3xl bg-white/10" />
             )}
             
@@ -383,64 +459,69 @@ function App() {
             <div className="relative z-10 h-full flex flex-col p-5">
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1.5">
-                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-red-500' : 'bg-red-400'}`} />
-                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-yellow-500' : 'bg-yellow-400'}`} />
-                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-green-500' : 'bg-green-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${previewTheme.isDark ? 'bg-red-500' : 'bg-red-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${previewTheme.isDark ? 'bg-yellow-500' : 'bg-yellow-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${previewTheme.isDark ? 'bg-green-500' : 'bg-green-400'}`} />
                 </div>
               </div>
 
               <div className="flex items-center gap-2 mb-3">
-                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${currentTheme.accent} flex items-center justify-center`}>
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center`}>
                   <Sparkles className="w-4 h-4 text-white" />
                 </div>
-                {parsed.title && (
-                  <span className={`font-bold text-lg ${currentTheme.text}`}>
-                    {renderBoldText(parsed.title)}
+                {(isEmpty ? EMPTY_GUIDE.title : parsed.title) && (
+                  <span className={`font-bold text-lg ${previewTheme.text}`}>
+                    {isEmpty ? EMPTY_GUIDE.title : parsed.title}
                   </span>
                 )}
               </div>
 
-              {parsed.subtitle && (
-                <h2 className={`text-sm font-semibold mb-3 ${currentTheme.subtext}`}>
-                  {renderBoldText(parsed.subtitle)}
+              {(isEmpty ? EMPTY_GUIDE.subtitle : parsed.subtitle) && (
+                <h2 className={`text-sm font-semibold mb-3 ${previewTheme.subtext}`}>
+                  {isEmpty ? EMPTY_GUIDE.subtitle : parsed.subtitle}
                 </h2>
               )}
 
               <div className="flex-1 space-y-2.5">
-                {parsed.items.map((item, idx) => (
+                {(isEmpty ? EMPTY_GUIDE.items : parsed.items).map((item, idx) => (
                   <div key={idx} className="flex items-start gap-2.5">
-                    <div className={`mt-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${currentTheme.accent} flex items-center justify-center flex-shrink-0`}>
+                    <div className={`mt-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center flex-shrink-0`}>
                       <CheckCircle className="w-2.5 h-2.5 text-white" />
                     </div>
-                    <span className={`text-sm leading-relaxed ${currentTheme.text}`}>
+                    <span className={`text-sm leading-relaxed ${previewTheme.text}`}>
                       {renderBoldText(item)}
                     </span>
                   </div>
                 ))}
               </div>
 
-              {parsed.quote && (
-                <div className={`mt-4 p-3 rounded-xl ${currentTheme.glass ? 'bg-white/30 backdrop-blur-sm' : currentTheme.isDark ? 'bg-gray-800/50' : 'bg-white/50'}`}>
+              {(isEmpty ? EMPTY_GUIDE.quote : parsed.quote) && (
+                <div className={`mt-4 p-3 rounded-xl ${previewTheme.glass ? 'bg-white/30 backdrop-blur-sm' : previewTheme.isDark ? 'bg-gray-800/50' : 'bg-white/50'}`}>
                   <div className="flex items-start gap-2">
-                    <Quote className={`w-4 h-4 mt-0.5 ${currentTheme.subtext}`} />
-                    <span className={`text-sm italic ${currentTheme.subtext}`}>
-                      {renderBoldText(parsed.quote)}
+                    <Quote className={`w-4 h-4 mt-0.5 ${previewTheme.subtext}`} />
+                    <span className={`text-sm italic ${previewTheme.subtext}`}>
+                      {renderBoldText(isEmpty ? EMPTY_GUIDE.quote : parsed.quote)}
                     </span>
                   </div>
                 </div>
               )}
 
               <div className="mt-auto pt-3 flex items-center">
-                <div className={`flex items-center gap-1.5 ${currentTheme.isDark ? 'border-gray-700' : 'border-gray-200/50'} border-t pt-3 flex-1`}>
-                  <User className={`w-3.5 h-3.5 ${currentTheme.subtext}`} />
-                  <span className={`text-xs font-medium ${currentTheme.subtext}`}>
-                    {parsed.author || '@你的小红书ID'}
+                <div className={`flex items-center gap-1.5 ${previewTheme.isDark ? 'border-gray-700' : 'border-gray-200/50'} border-t pt-3 flex-1`}>
+                  <User className={`w-3.5 h-3.5 ${previewTheme.subtext}`} />
+                  <span className={`text-xs font-medium ${previewTheme.subtext}`}>
+                    {isEmpty ? EMPTY_GUIDE.author : (parsed.author || '@你的小红书ID')}
                   </span>
                 </div>
               </div>
 
             </div>
           </div>
+          {hoveredTheme && hoveredTheme !== theme && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-gray-800 text-white text-xs px-3 py-1.5 rounded-full">
+              预览主题: {THEMES[hoveredTheme].name}
+            </div>
+          )}
         </div>
       </main>
     </div>
