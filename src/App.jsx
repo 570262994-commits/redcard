@@ -1,43 +1,50 @@
 import { useState, useRef, useEffect } from 'react'
 import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile } from 'lucide-react'
-import html2canvas from 'html2canvas'
+import { domToPng } from 'modern-screenshot'
 
 const THEMES = {
-  gray: {
-    name: '高级灰',
-    bg: 'bg-gradient-to-br from-gray-100 via-gray-200 to-gray-300',
-    accent: 'from-gray-600 to-gray-800',
-    text: 'text-gray-800',
-    subtext: 'text-gray-600'
+  geek: {
+    name: '极客代码',
+    bg: 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900',
+    accent: 'from-green-400 to-emerald-500',
+    text: 'text-gray-100',
+    subtext: 'text-gray-400',
+    cardBorder: 'border border-gray-700',
+    isDark: true
   },
   blue: {
-    name: '多巴胺蓝',
-    bg: 'bg-gradient-to-br from-blue-100 via-cyan-100 to-blue-200',
+    name: '蔚蓝灵感',
+    bg: 'bg-gradient-to-br from-blue-100 via-cyan-50 to-sky-200',
     accent: 'from-blue-500 to-cyan-500',
     text: 'text-blue-900',
-    subtext: 'text-blue-700'
+    subtext: 'text-blue-700',
+    cardBorder: 'border border-blue-200/50'
   },
   pink: {
-    name: '多巴胺粉',
-    bg: 'bg-gradient-to-br from-pink-100 via-rose-100 to-pink-200',
+    name: '蜜桃日记',
+    bg: 'bg-gradient-to-br from-pink-100 via-rose-50 to-pink-200',
     accent: 'from-pink-500 to-rose-500',
     text: 'text-pink-900',
-    subtext: 'text-pink-700'
+    subtext: 'text-pink-700',
+    cardBorder: 'border border-pink-200/50'
   },
   glass: {
-    name: '磨砂玻璃',
-    bg: 'bg-gradient-to-br from-white/80 via-white/60 to-white/40',
-    accent: 'from-violet-500 to-purple-500',
+    name: '梦幻视窗',
+    bg: 'bg-gradient-to-br from-violet-200/30 via-fuchsia-100/20 to-pink-200/30',
+    accent: 'from-violet-500 to-fuchsia-500',
     text: 'text-gray-800',
     subtext: 'text-gray-600',
+    cardBorder: 'border-2 border-white/60',
     glass: true
   },
-  minimal: {
-    name: '极简白',
-    bg: 'bg-gradient-to-br from-white to-gray-50',
-    accent: 'from-gray-800 to-black',
-    text: 'text-gray-900',
-    subtext: 'text-gray-500'
+  paper: {
+    name: '纸墨极简',
+    bg: 'bg-gradient-to-br from-amber-50 via-orange-50/30 to-yellow-50',
+    accent: 'from-amber-700 to-orange-800',
+    text: 'text-gray-800',
+    subtext: 'text-gray-600',
+    cardBorder: 'border border-amber-200/30',
+    paper: true
   }
 }
 
@@ -60,7 +67,7 @@ function App() {
   const [content, setContent] = useState(() => {
     return localStorage.getItem('redcard-content') || ''
   })
-  const [theme, setTheme] = useState(() => localStorage.getItem('redcard-theme') || 'gray')
+  const [theme, setTheme] = useState(() => localStorage.getItem('redcard-theme') || 'geek')
   const [scale, setScale] = useState(2)
   const [exporting, setExporting] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
@@ -171,23 +178,25 @@ function App() {
     setContent(PRD_TEMPLATE)
   }
 
-  const handleExport = async () => {
+  const [showExportModal, setShowExportModal] = useState(false)
+
+  const handleExport = async (selectedScale) => {
     if (!cardRef.current || exporting) return
     
+    setShowExportModal(false)
     setExporting(true)
+    
     try {
       await new Promise(resolve => setTimeout(resolve, 100))
       
-      const canvas = await html2canvas(cardRef.current, {
-        scale: scale,
-        useCORS: true,
-        backgroundColor: null,
-        logging: false
+      const dataUrl = await domToPng(cardRef.current, {
+        scale: selectedScale,
+        backgroundColor: null
       })
       
       const link = document.createElement('a')
       link.download = `redcard-${Date.now()}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.href = dataUrl
       link.click()
     } catch (err) {
       console.error('导出失败:', err)
@@ -210,15 +219,15 @@ function App() {
         </div>
         
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-gray-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
             {Object.entries(THEMES).map(([key, value]) => (
               <button
                 key={key}
                 onClick={() => setTheme(key)}
-                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all relative ${
                   theme === key 
-                    ? 'bg-white text-gray-800 shadow-sm' 
-                    : 'text-gray-600 hover:text-gray-800'
+                    ? 'bg-white text-gray-800 shadow-sm ring-2 ring-pink-400/50 animate-pulse' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 {value.name}
@@ -226,17 +235,8 @@ function App() {
             ))}
           </div>
 
-          <select 
-            value={scale} 
-            onChange={(e) => setScale(Number(e.target.value))}
-            className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-          >
-            <option value={2}>2x 清晰度</option>
-            <option value={3}>3x 超清</option>
-          </select>
-
           <button
-            onClick={handleExport}
+            onClick={() => setShowExportModal(true)}
             disabled={exporting}
             className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg font-medium hover:from-pink-600 hover:to-rose-600 transition-all disabled:opacity-50"
           >
@@ -245,6 +245,34 @@ function App() {
           </button>
         </div>
       </header>
+
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-2xl p-6 shadow-xl">
+            <h3 className="text-lg font-bold text-gray-800 mb-4">选择导出清晰度</h3>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleExport(2)}
+                className="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-xl text-gray-800 font-medium transition-colors"
+              >
+                2x 清晰度
+              </button>
+              <button
+                onClick={() => handleExport(3)}
+                className="px-6 py-3 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-medium transition-colors"
+              >
+                3x 超清
+              </button>
+            </div>
+            <button
+              onClick={() => setShowExportModal(false)}
+              className="mt-4 w-full py-2 text-gray-500 hover:text-gray-700 text-sm"
+            >
+              取消
+            </button>
+          </div>
+        </div>
+      )}
 
       <main className="flex-1 flex">
         <div className="w-2/5 border-r border-gray-200 bg-white flex flex-col">
@@ -337,12 +365,30 @@ function App() {
         <div className="w-3/5 bg-gray-100 flex items-center justify-center p-8 overflow-auto">
           <div 
             ref={cardRef}
-            className={`relative w-[360px] h-[480px] rounded-3xl shadow-2xl overflow-hidden ${currentTheme.bg} ${currentTheme.glass ? 'backdrop-blur-xl' : ''}`}
+            className={`relative w-[360px] h-[480px] rounded-3xl shadow-2xl overflow-hidden ${currentTheme.bg} ${currentTheme.cardBorder} ${currentTheme.glass ? 'backdrop-blur-2xl' : ''}`}
             style={{ aspectRatio: '3/4' }}
           >
-            <div className="absolute inset-0 bg-gradient-to-br from-white/20 to-transparent pointer-events-none" />
+            {currentTheme.paper && (
+              <div className="absolute inset-0 opacity-30" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+              }} />
+            )}
+            
+            {currentTheme.glass && (
+              <div className="absolute inset-0 backdrop-blur-3xl bg-white/10" />
+            )}
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
             
             <div className="relative z-10 h-full flex flex-col p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-1.5">
+                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-red-500' : 'bg-red-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-yellow-500' : 'bg-yellow-400'}`} />
+                  <div className={`w-3 h-3 rounded-full ${currentTheme.isDark ? 'bg-green-500' : 'bg-green-400'}`} />
+                </div>
+              </div>
+
               <div className="flex items-center gap-2 mb-3">
                 <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${currentTheme.accent} flex items-center justify-center`}>
                   <Sparkles className="w-4 h-4 text-white" />
@@ -374,7 +420,7 @@ function App() {
               </div>
 
               {parsed.quote && (
-                <div className="mt-4 p-3 bg-white/40 backdrop-blur-sm rounded-xl">
+                <div className={`mt-4 p-3 rounded-xl ${currentTheme.glass ? 'bg-white/30 backdrop-blur-sm' : currentTheme.isDark ? 'bg-gray-800/50' : 'bg-white/50'}`}>
                   <div className="flex items-start gap-2">
                     <Quote className={`w-4 h-4 mt-0.5 ${currentTheme.subtext}`} />
                     <span className={`text-sm italic ${currentTheme.subtext}`}>
@@ -384,8 +430,8 @@ function App() {
                 </div>
               )}
 
-              <div className="mt-auto pt-3 border-t border-gray-200/50">
-                <div className="flex items-center gap-1.5">
+              <div className="mt-auto pt-3 flex items-center">
+                <div className={`flex items-center gap-1.5 ${currentTheme.isDark ? 'border-gray-700' : 'border-gray-200/50'} border-t pt-3 flex-1`}>
                   <User className={`w-3.5 h-3.5 ${currentTheme.subtext}`} />
                   <span className={`text-xs font-medium ${currentTheme.subtext}`}>
                     {parsed.author || '@你的小红书ID'}
