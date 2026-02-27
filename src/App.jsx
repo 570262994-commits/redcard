@@ -1,19 +1,17 @@
 import { useState, useRef, useEffect } from 'react'
-import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile, AlertCircle, Terminal, Zap } from 'lucide-react'
+import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile, AlertCircle } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 
 const THEMES = {
   geek: {
     name: '极客代码',
-    bg: 'bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-[#161B22] via-[#0D1117] to-[#0D1117]',
+    bg: 'bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900',
     accent: 'from-green-400 to-emerald-500',
     text: 'text-gray-100',
     subtext: 'text-gray-400',
-    cardBorder: 'border border-white/10',
+    cardBorder: 'border border-gray-700',
     isDark: true,
-    colors: ['#1f2937', '#10b981', '#34d399'],
-    neon: true,
-    glowColor: '#10b981'
+    colors: ['#1f2937', '#10b981', '#34d399']
   },
   blue: {
     name: '蔚蓝灵感',
@@ -468,37 +466,29 @@ function App() {
               </div>
 
               <div className="flex items-center gap-2 mb-3">
-                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center ${previewTheme.neon ? 'shadow-lg' : ''}`} style={previewTheme.neon ? { boxShadow: `0 0 20px ${previewTheme.glowColor}40` } : {}}>
-                  {previewTheme.neon ? (
-                    <Terminal className="w-4 h-4 text-white" style={{ filter: `drop-shadow(0 0 6px ${previewTheme.glowColor})` }} />
-                  ) : (
-                    <Sparkles className="w-4 h-4 text-white" />
-                  )}
+                <div className={`w-8 h-8 rounded-lg bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center`}>
+                  <Sparkles className="w-4 h-4 text-white" />
                 </div>
                 {(isEmpty ? EMPTY_GUIDE.title : parsed.title) && (
-                  <span className={`font-bold text-lg ${previewTheme.text} ${previewTheme.neon ? 'text-shadow-glow' : ''}`} style={previewTheme.neon ? { textShadow: `0 0 20px ${previewTheme.glowColor}60` } : {}}>
+                  <span className={`font-bold text-lg ${previewTheme.text}`}>
                     {isEmpty ? EMPTY_GUIDE.title : parsed.title}
                   </span>
                 )}
               </div>
 
               {(isEmpty ? EMPTY_GUIDE.subtitle : parsed.subtitle) && (
-                <h2 className={`text-sm font-semibold mb-3 opacity-60 ${previewTheme.subtext}`} style={{ fontSize: '0.8rem' }}>
+                <h2 className={`text-sm font-semibold mb-3 ${previewTheme.subtext}`}>
                   {isEmpty ? EMPTY_GUIDE.subtitle : parsed.subtitle}
                 </h2>
               )}
 
-              <div className="flex-1 space-y-3">
+              <div className="flex-1 space-y-2.5">
                 {(isEmpty ? EMPTY_GUIDE.items : parsed.items).map((item, idx) => (
-                  <div key={idx} className="flex items-start gap-3">
-                    <div className={`mt-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center flex-shrink-0 ${previewTheme.neon ? 'shadow-md' : ''}`} style={previewTheme.neon ? { boxShadow: `0 0 8px ${previewTheme.glowColor}50` } : {}}>
-                      {previewTheme.neon ? (
-                        <Zap className="w-2 h-2 text-white" />
-                      ) : (
-                        <CheckCircle className="w-2.5 h-2.5 text-white" />
-                      )}
+                  <div key={idx} className="flex items-start gap-2.5">
+                    <div className={`mt-0.5 w-4 h-4 rounded-full bg-gradient-to-br ${previewTheme.accent} flex items-center justify-center flex-shrink-0`}>
+                      <CheckCircle className="w-2.5 h-2.5 text-white" />
                     </div>
-                    <span className={`text-sm font-medium leading-[1.8] ${previewTheme.text}`}>
+                    <span className={`text-sm leading-relaxed ${previewTheme.text}`}>
                       {renderBoldText(item)}
                     </span>
                   </div>
@@ -506,10 +496,10 @@ function App() {
               </div>
 
               {(isEmpty ? EMPTY_GUIDE.quote : parsed.quote) && (
-                <div className={`mt-4 p-3 rounded-xl ${previewTheme.glass ? 'bg-white/30 backdrop-blur-sm' : previewTheme.isDark ? (previewTheme.neon ? 'bg-black/30' : 'bg-gray-800/50') : 'bg-white/50'} ${previewTheme.neon ? 'border-l-2 border-green-500/50' : ''}`}>
+                <div className={`mt-4 p-3 rounded-xl ${previewTheme.glass ? 'bg-white/30 backdrop-blur-sm' : previewTheme.isDark ? 'bg-gray-800/50' : 'bg-white/50'}`}>
                   <div className="flex items-start gap-2">
-                    <Quote className={`w-4 h-4 mt-0.5 ${previewTheme.subtext}`} style={previewTheme.neon ? { color: previewTheme.glowColor } : {}} />
-                    <span className={`text-sm italic font-light ${previewTheme.subtext}`}>
+                    <Quote className={`w-4 h-4 mt-0.5 ${previewTheme.subtext}`} />
+                    <span className={`text-sm italic ${previewTheme.subtext}`}>
                       {renderBoldText(isEmpty ? EMPTY_GUIDE.quote : parsed.quote)}
                     </span>
                   </div>
@@ -517,7 +507,7 @@ function App() {
               )}
 
               <div className="mt-auto pt-3 flex items-center">
-                <div className={`flex items-center gap-1.5 ${previewTheme.isDark ? 'border-gray-700/50' : 'border-gray-200/50'} border-t pt-3 flex-1`}>
+                <div className={`flex items-center gap-1.5 ${previewTheme.isDark ? 'border-gray-700' : 'border-gray-200/50'} border-t pt-3 flex-1`}>
                   <User className={`w-3.5 h-3.5 ${previewTheme.subtext}`} />
                   <span className={`text-xs font-medium ${previewTheme.subtext}`}>
                     {isEmpty ? EMPTY_GUIDE.author : (parsed.author || '@你的小红书ID')}
