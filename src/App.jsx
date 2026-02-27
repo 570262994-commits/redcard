@@ -50,13 +50,6 @@ const PRD_TEMPLATE = `# PRD自查清单
 - 异常流程是否有处理方案
 - 数据埋点是否规划
 
-## 交互体验
-
-- 操作路径是否简洁
-- 反馈提示是否及时
-- 错误提示是否友好
-- 加载状态是否明确
-
 > 好的产品，细节决定成败 ✨
 
 @产品经理小王`
@@ -255,36 +248,36 @@ function App() {
 
       <main className="flex-1 flex">
         <div className="w-2/5 border-r border-gray-200 bg-white flex flex-col">
-          <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center justify-between mb-3">
+          <div className="p-4 border-b border-gray-100 overflow-visible">
+            <div className="flex items-center justify-between mb-3 overflow-visible">
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleToolbarAction('bold')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                 >
                   <Bold className="w-4 h-4 text-gray-600" />
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">加粗 **文字**</span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">加粗 **文字**</span>
                 </button>
                 <button
                   onClick={() => handleToolbarAction('list')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                 >
                   <List className="w-4 h-4 text-gray-600" />
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">列表项 - </span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">列表项 - </span>
                 </button>
                 <button
                   onClick={() => handleToolbarAction('quote')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                 >
                   <Quote className="w-4 h-4 text-gray-600" />
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">金句 &gt; </span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">金句 &gt; </span>
                 </button>
                 <button
                   onClick={() => handleToolbarAction('author')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                 >
                   <AtSign className="w-4 h-4 text-gray-600" />
-                  <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">作者 @</span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">作者 @</span>
                 </button>
                 <div className="relative">
                   <button
@@ -292,7 +285,7 @@ function App() {
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                   >
                     <Smile className="w-4 h-4 text-gray-600" />
-                    <span className="absolute -bottom-8 left-1/2 -translate-x-1/2 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">插入表情</span>
+                    <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">插入表情</span>
                   </button>
                   {showEmojiPicker && (
                     <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg p-2 flex flex-wrap gap-1 z-50 w-40">
