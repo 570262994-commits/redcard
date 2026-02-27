@@ -86,7 +86,6 @@ function App() {
     return localStorage.getItem('redcard-content') || ''
   })
   const [theme, setTheme] = useState(() => localStorage.getItem('redcard-theme') || 'geek')
-  const [scale, setScale] = useState(2)
   const [exporting, setExporting] = useState(false)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [showLoadConfirm, setShowLoadConfirm] = useState(false)
