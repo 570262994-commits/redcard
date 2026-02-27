@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile, AlertCircle } from 'lucide-react'
+import { Download, Sparkles, User, Quote, CheckCircle, Bold, List, AtSign, FileText, Smile, AlertCircle, Hash } from 'lucide-react'
 import { domToPng } from 'modern-screenshot'
 
 const THEMES = {
@@ -173,6 +173,12 @@ function App() {
     switch (action) {
       case 'bold':
         insertText('**', '**')
+        break
+      case 'h1':
+        insertText('# ')
+        break
+      case 'h2':
+        insertText('## ')
         break
       case 'list':
         insertText('- ')
@@ -354,6 +360,22 @@ function App() {
             <div className="flex items-center justify-between mb-3 overflow-visible">
               <div className="flex items-center gap-1">
                 <button
+                  onClick={() => handleToolbarAction('h1')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                  title="标题"
+                >
+                  <span className="text-xs font-bold text-gray-600">H1</span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">标题 #</span>
+                </button>
+                <button
+                  onClick={() => handleToolbarAction('h2')}
+                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
+                  title="副标题"
+                >
+                  <span className="text-xs font-bold text-gray-600">H2</span>
+                  <span className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-1 bg-gray-800 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50">副标题 ##</span>
+                </button>
+                <button
                   onClick={() => handleToolbarAction('bold')}
                   className="p-2 hover:bg-gray-100 rounded-lg transition-colors group relative"
                 >
@@ -411,9 +433,6 @@ function App() {
                 <FileText className="w-4 h-4" />
                 加载示例
               </button>
-            </div>
-            <div className="text-xs text-gray-400">
-              <span className="text-pink-500">#</span> 标题 · <span className="text-pink-500">##</span> 副标题 · <span className="text-pink-500">-</span> 列表 · <span className="text-pink-500">&gt;</span> 金句 · <span className="text-pink-500">@</span> 作者
             </div>
           </div>
           
