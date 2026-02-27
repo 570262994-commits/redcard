@@ -516,8 +516,8 @@ function App() {
               {(isEmpty ? EMPTY_GUIDE.quote : parsed.quote) && (
                 <div className={`mt-4 p-3 rounded-xl ${previewTheme.glass ? 'bg-white/30 backdrop-blur-sm' : previewTheme.isDark ? 'bg-gray-800/50' : 'bg-white/50'}`}>
                   <div className="flex items-start gap-2">
-                    <Quote className={`w-4 h-4 mt-0.5 ${previewTheme.subtext}`} />
-                    <span className={`text-sm italic ${previewTheme.subtext}`}>
+                    <Quote className={`w-4 h-4 mt-0.5 flex-shrink-0 ${previewTheme.subtext}`} />
+                    <span className={`text-sm italic whitespace-nowrap ${previewTheme.subtext}`}>
                       {renderBoldText(isEmpty ? EMPTY_GUIDE.quote : parsed.quote)}
                     </span>
                   </div>
